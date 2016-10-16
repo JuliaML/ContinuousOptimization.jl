@@ -118,8 +118,11 @@ learner = make_learner(
                                          # note: we can also only check every ith iteration
 )
 
-# learn is like optimize
-learn!(model, learner, repeated(nothing))
+# learn is like optimize.
+learn!(model, learner)
+
+# note: for the function minimization case, it "iterates" over obs == nothing, since the
+#   `x` in f(x) is treated as learnable parameters in Transformations.Differentiable, NOT input
 
 ------------------------------------------------------------
 =#
