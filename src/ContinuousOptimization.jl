@@ -1,7 +1,7 @@
 module ContinuousOptimization
 
-using StochasticOptimization
-const SO = StochasticOptimization
+using LearningStrategies
+const LS = LearningStrategies
 
 #=
 
@@ -9,7 +9,7 @@ First, we need LearningStrategy types to do individual components of Optim.optim
 
 function optimize{T, M<:Optimizer}(d, initial_x::Array{T}, method::M, options::OptimizationOptions)
 
--- SO.TimeLimit
+-- LS.TimeLimit
     t0 = time() # Initial time stamp used to control early stopping by options.time_limit
 
 -- ignore?
@@ -20,12 +20,12 @@ function optimize{T, M<:Optimizer}(d, initial_x::Array{T}, method::M, options::O
 -- TODO
     state = initial_state(method, options, d, initial_x)
 
--- SO.ShowStatus, SO.Tracer, SO.IterFunction
+-- LS.ShowStatus, LS.Tracer, LS.IterFunction
     tr = OptimizationTrace{typeof(method)}()
     tracing = options.store_trace || options.show_trace || options.extended_trace || options.callback != nothing
     stopped, stopped_by_callback, stopped_by_time_limit = false, false, false
 
-- SO.GradConverged
+- LS.GradConverged
     x_converged, f_converged = false, false
     g_converged = if typeof(method) <: NelderMead
         nmobjective(state.f_simplex, state.m, state.n) < options.g_tol
@@ -38,28 +38,28 @@ function optimize{T, M<:Optimizer}(d, initial_x::Array{T}, method::M, options::O
     converged = g_converged
     iteration = 0
 
--- part of SO.ShowStatus's pre_hook
+-- part of LS.ShowStatus's pre_hook
     options.show_trace && print_header(method)
     trace!(tr, state, iteration, method, options)
 
 -- ignore... part of MetaLearner
     while !converged && !stopped && iteration < options.iterations
 
--- SO.MaxIter
+-- LS.MaxIter
         iteration += 1
 
--- SO.GradientLearner
+-- LS.GradientLearner
         update_state!(d, state, method) && break # it returns true if it's forced by something in update! to stop (eg dx_dg == 0.0 in BFGS)
         update_g!(d, state, method)
 
--- SO.FunctionConverged, SO.GradConverged, SO.ParamsConverged
+-- LS.FunctionConverged, LS.GradConverged, LS.ParamsConverged
         x_converged, f_converged,
         g_converged, converged = assess_convergence(state, options)
         # We don't use the Hessian for anything if we have declared convergence,
         # so we might as well not make the (expensive) update if converged == true
         !converged && update_h!(d, state, method)
 
--- SO.ShowStatus, SO.Tracer
+-- LS.ShowStatus, LS.Tracer
         # If tracing, update trace with trace!. If a callback is provided, it
         # should have boolean return value that controls the variable stopped_by_callback.
         # This allows for early stopping controlled by the callback.
@@ -67,7 +67,7 @@ function optimize{T, M<:Optimizer}(d, initial_x::Array{T}, method::M, options::O
             stopped_by_callback = trace!(tr, state, iteration, method, options)
         end
 
--- SO.TimeLimit
+-- LS.TimeLimit
         # Check time_limit; if none is provided it is NaN and the comparison
         # will always return false.
         stopped_by_time_limit = time()-t0 > options.time_limit ? true : false
