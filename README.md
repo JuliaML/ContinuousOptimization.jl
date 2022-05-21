@@ -1,3 +1,7 @@
+# DEPRECATED
+
+This package is deprecated.
+
 # ContinuousOptimization (WIP)
 
 This is a playground for implementations of "Unconstrained Continuous Full-Batch Optimization" algorithms. (the name is due to a discussion on [Optim's gitter chat](https://gitter.im/JuliaOpt/Optim.jl))
